@@ -1,5 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
+import json
+
+liste = []
 
 choice=input("Voir l'actualité ou les conditions d'entrée d'un pays (actu | conditions) : ")
 if choice == "conditions":
@@ -27,12 +30,23 @@ if choice == "actu":
     page = requests.get(f'https://www.tourdumondiste.com/coronavirus-dans-quels-pays-peut-on-voyager')
     soupdata = BeautifulSoup(page.content, "html.parser")
 
-    results = soupdata.find_all("ul",class_="liste_simple2", limit=1)
+
+    results = soupdata.find("ul",class_="liste_simple2")
     file.write(f'''<div class="card">
     <div class="card-header">
-        {results}
+    <ul class="list-group list-group-flush">''')
+
+    id = 0;
+    for result in results.children:
+        id+=1
+        file.write(f'''<li class="list-group-item">{result.text}</li>''')
+        liste.append({'id': id, 'result': result.text})
+
+    file.write(f'''</ul>
     </div>
     </div>''')
+    d = {"liste": liste}
+    json.dump(d,open("db.json", "w"))
 elif choice == "conditions":
     if choice2 == "pays":
         page = requests.get(f'https://www.diplomatie.gouv.fr/fr/conseils-aux-voyageurs/conseils-par-pays-destination/{pays}/')
